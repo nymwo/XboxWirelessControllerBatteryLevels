@@ -11,6 +11,7 @@
 
     <InvariantGlobalization>true</InvariantGlobalization>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

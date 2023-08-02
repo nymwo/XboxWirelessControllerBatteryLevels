@@ -7,10 +7,14 @@ using System.Text.RegularExpressions;
 
 namespace XboxWirelessControllerBatteryLevels;
 
-static class BatteryLevelHelper
+static partial class BatteryLevelHelper
 {
     internal static IEnumerable<int> GetBatteryLevels()
     {
+        #if DEBUG
+        return new[] { 70, 35, 20, 10 };
+        #endif
+
         var script = """
             $values = Get-CimInstance -Query 'Select * From Win32_PnPEntity Where Name = "Xbox Wireless Controller"' |`
                 Invoke-CimMethod -MethodName GetDeviceProperties -Arguments @{devicePropertyKeys = '{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2', '{83DA6326-97A6-4088-9453-A1923F573B29} 15'} |`
@@ -52,7 +56,7 @@ static class BatteryLevelHelper
 
         var result = process.StandardOutput.ReadToEnd();
         var results =
-            Regex.Matches(result, @"BATTERY_LEVEL=(\d+)=END")
+            BatteryLevelRegex().Matches(result)
             .Select(x => x.Groups[1].Value)
             .Select(x => int.Parse(x))
             .OrderByDescending(x => x);
@@ -61,7 +65,7 @@ static class BatteryLevelHelper
     }
     internal static Icon GetIcon(IEnumerable<int> batteryLevels)
     {
-        int size = 32;
+        int size = 16;
 
         var image = new Bitmap(size, size);
         using var graphics = Graphics.FromImage(image);
@@ -73,7 +77,7 @@ static class BatteryLevelHelper
         {
             var color = batteryLevel switch
             {
-                < 10 => Color.Red,
+                < 15 => Color.Red,
                 < 25 => Color.Orange,
                 < 40 => Color.Yellow,
                 _ => Color.Green
@@ -100,4 +104,7 @@ static class BatteryLevelHelper
 
         return Icon.FromHandle(image.GetHicon());
     }
+
+    [GeneratedRegex("BATTERY_LEVEL=(\\d+)=END")]
+    private static partial Regex BatteryLevelRegex();
 }
