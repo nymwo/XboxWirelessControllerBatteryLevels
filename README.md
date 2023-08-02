@@ -3,7 +3,7 @@
 A simple .NET tray application that displays the battery level of your Xbox Wireless Controller(s).
 
 ## Installation
-Just download and run the latest release from the [releases page](releases).
+Just download and run the latest release from the [releases page](https://github.com/nymwo/XboxWirelessControllerBatteryLevels/releases)
 
 ## Features
 
