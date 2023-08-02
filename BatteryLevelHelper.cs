@@ -61,7 +61,7 @@ static class BatteryLevelHelper
     }
     internal static Icon GetIcon(IEnumerable<int> batteryLevels)
     {
-        int size = 16;
+        int size = 32;
 
         var image = new Bitmap(size, size);
         using var graphics = Graphics.FromImage(image);
@@ -74,18 +74,19 @@ static class BatteryLevelHelper
             var color = batteryLevel switch
             {
                 < 10 => Color.Red,
-                < 20 => Color.Orange,
-                < 30 => Color.Yellow,
+                < 25 => Color.Orange,
+                < 40 => Color.Yellow,
                 _ => Color.Green
             };
             int w = size / batteryLevels.Count();
             int h = size * batteryLevel / 100;
-            int w2 = w;
 
-            // If the last battery level doesn't fill the entire icon, adjust the width.
+            // One pixel gap between each battery level.
+            int w2 = w - 1;
+
+            // The last battery level never fills the entire icon, adjust the width so it always fits.
             if (
-                index == batteryLevels.Count() - 1 &&
-                index * w + w2 < size
+                index == batteryLevels.Count() - 1
             )
             {
                 w2 = size - index * w;
@@ -96,17 +97,7 @@ static class BatteryLevelHelper
                 new RectangleF(index * w, size - h, w2, h)
             );
         }
-        graphics.DrawString(
-            batteryLevels.Count().ToString(),
-            new Font("Segoe UI", size * 2 / 5),
-            Brushes.White,
-            new PointF(size / 2, size / 2),
-            new StringFormat
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            }
-        );
+
         return Icon.FromHandle(image.GetHicon());
     }
 }
