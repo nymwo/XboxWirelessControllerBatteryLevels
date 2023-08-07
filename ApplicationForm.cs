@@ -25,21 +25,23 @@ namespace XboxWirelessControllerBatteryLevels
         });
             notifyIcon.ContextMenuStrip = contextMenu;
 
-            var timer = new Timer(components);
-            timer.Interval = 5000;
+            var timer = new Timer(components)
+            {
+                Interval = 5000
+            };
             timer.Tick += (sender, e) => UpdateStatus();
             timer.Start();
         }
 
         private void UpdateStatus()
         {
-            // notifyIcon.Icon = System.Drawing.SystemIcons.Exclamation;
             var batteryLevels = BatteryLevelHelper.GetBatteryLevels();
             var icon = BatteryLevelHelper.GetIcon(batteryLevels);
             notifyIcon.Icon = icon;
             notifyIcon.Text = batteryLevels.Count > 0
                 ? string.Join("%, ", batteryLevels) + "%"
                 : "No controllers connected";
+            System.GC.Collect();
         }
 
         protected override void OnLoad(System.EventArgs e)

@@ -10,28 +10,28 @@ static partial class BatteryLevelHelper
 {
     [GeneratedRegex("BATTERY_LEVEL=(\\d+)=END")]
     private static partial Regex BatteryLevelRegex();
+
+    private const string Script = """
+        $values = Get-CimInstance -Query 'Select * From Win32_PnPEntity Where Name = "Xbox Wireless Controller"' |`
+            Invoke-CimMethod -MethodName GetDeviceProperties -Arguments @{devicePropertyKeys = '{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2', '{83DA6326-97A6-4088-9453-A1923F573B29} 15'} |`
+            Select-Object -ExpandProperty DeviceProperties |`
+            Select-Object -ExpandProperty Data
+
+        for ($i = 0; $i -lt $values.Count; $i += 2) {
+            $batteryLevel = $values[$i]
+            $connected = $values[$i + 1]
+            if ($connected) {
+                Write-Output "BATTERY_LEVEL=$batteryLevel=END"
+            }
+        }
+
+    """;
     internal static List<int> GetBatteryLevels()
     {
-        var script = """
-            $values = Get-CimInstance -Query 'Select * From Win32_PnPEntity Where Name = "Xbox Wireless Controller"' |`
-                Invoke-CimMethod -MethodName GetDeviceProperties -Arguments @{devicePropertyKeys = '{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2', '{83DA6326-97A6-4088-9453-A1923F573B29} 15'} |`
-                Select-Object -ExpandProperty DeviceProperties |`
-                Select-Object -ExpandProperty Data
-
-            for ($i = 0; $i -lt $values.Count; $i += 2) {
-                $batteryLevel = $values[$i]
-                $connected = $values[$i + 1]
-                if ($connected) {
-                    Write-Output "BATTERY_LEVEL=$batteryLevel=END"
-                }
-            }
-
-        """;
-
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
             {
-                FileName = "pwsh.exe",
+                FileName = "powershell.exe",
                 UseShellExecute = false,
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
@@ -40,7 +40,7 @@ static partial class BatteryLevelHelper
             };
 
         process.Start();
-        process.StandardInput.WriteLine(script);
+        process.StandardInput.WriteLine(Script);
         process.StandardInput.Flush();
         process.StandardInput.Close();
         process.WaitForExit();
@@ -52,6 +52,7 @@ static partial class BatteryLevelHelper
         }
 
         var result = process.StandardOutput.ReadToEnd();
+
         if (BatteryLevelRegex().Matches(result) is not MatchCollection matches)
         {
             return new List<int>();
@@ -67,6 +68,8 @@ static partial class BatteryLevelHelper
             var batteryLevel = int.Parse(match.Groups[1].Value);
             results.Add(batteryLevel);
         }
+
+        results.Sort();
 
         return results;
     }
@@ -108,9 +111,9 @@ static partial class BatteryLevelHelper
                 new SolidBrush(color),
                 new RectangleF(index * w, size - h, w2, h)
             );
-        }
 
-        index++;
+            index++;
+        }
 
         return Icon.FromHandle(image.GetHicon());
     }

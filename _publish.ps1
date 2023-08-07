@@ -3,6 +3,8 @@ if ($process) {
     Stop-Process -Id $process.Id -Force -ErrorAction Stop
 
     $process.WaitForExit()
+
+    Start-Sleep 2
 }
 
 if (Test-Path ./publish) {
