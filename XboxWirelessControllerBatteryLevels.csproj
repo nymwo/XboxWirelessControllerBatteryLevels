@@ -16,10 +16,22 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">
     <SelfContained>true</SelfContained>
-    <DebugType>embedded</DebugType>
+    <DebugType>none</DebugType>
     <PublishSingleFile>true</PublishSingleFile>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
+
+  <!-- Trim unused files from the bundle -->
+  <Target Name="TrimExeBundle" BeforeTargets="GenerateSingleFileBundle" DependsOnTargets="PrepareForBundle">
+    <ItemGroup>
+      <FilesToBundleIgnore Include="@(FilesToBundle)" Condition="$([System.IO.File]::ReadAllText('_used_files.txt').Contains('%(Filename)%(Extension)')) == false" />
+    </ItemGroup>
+    <ItemGroup>
+      <FilesToBundle Remove="@(FilesToBundleIgnore)" />
+    </ItemGroup>
+    <Message Importance="high" Text="Excluding %(FilesToBundleIgnore.Filename)%(FilesToBundleIgnore.Extension) from bundle" />
+    <Message Importance="high" Text="Including %(FilesToBundle.Filename)%(FilesToBundle.Extension) in bundle" />
+  </Target>
 
 </Project>

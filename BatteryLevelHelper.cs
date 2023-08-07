@@ -2,19 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace XboxWirelessControllerBatteryLevels;
 
 static partial class BatteryLevelHelper
 {
-    internal static IEnumerable<int> GetBatteryLevels()
+    [GeneratedRegex("BATTERY_LEVEL=(\\d+)=END")]
+    private static partial Regex BatteryLevelRegex();
+    internal static List<int> GetBatteryLevels()
     {
-        #if DEBUG
-        return new[] { 70, 35, 20, 10 };
-        #endif
-
         var script = """
             $values = Get-CimInstance -Query 'Select * From Win32_PnPEntity Where Name = "Xbox Wireless Controller"' |`
                 Invoke-CimMethod -MethodName GetDeviceProperties -Arguments @{devicePropertyKeys = '{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2', '{83DA6326-97A6-4088-9453-A1923F573B29} 15'} |`
@@ -55,15 +52,25 @@ static partial class BatteryLevelHelper
         }
 
         var result = process.StandardOutput.ReadToEnd();
-        var results =
-            BatteryLevelRegex().Matches(result)
-            .Select(x => x.Groups[1].Value)
-            .Select(x => int.Parse(x))
-            .OrderByDescending(x => x);
+        if (BatteryLevelRegex().Matches(result) is not MatchCollection matches)
+        {
+            return new List<int>();
+        }
+        
+        var results = new List<int>();
+        foreach (var m in matches)
+        {
+            if (m is not Match match)
+            {
+                continue;
+            }
+            var batteryLevel = int.Parse(match.Groups[1].Value);
+            results.Add(batteryLevel);
+        }
 
         return results;
     }
-    internal static Icon GetIcon(IEnumerable<int> batteryLevels)
+    internal static Icon GetIcon(List<int> batteryLevels)
     {
         int size = 16;
 
@@ -73,7 +80,8 @@ static partial class BatteryLevelHelper
             Brushes.Black,
             new RectangleF(0, 0, size, size)
         );
-        foreach (var (batteryLevel, index) in batteryLevels.Select((x, i) => (x, i)))
+        int index = 0;
+        foreach (int batteryLevel in batteryLevels)
         {
             var color = batteryLevel switch
             {
@@ -82,7 +90,7 @@ static partial class BatteryLevelHelper
                 < 40 => Color.Yellow,
                 _ => Color.Green
             };
-            int w = size / batteryLevels.Count();
+            int w = size / batteryLevels.Count;
             int h = size * batteryLevel / 100;
 
             // One pixel gap between each battery level.
@@ -90,7 +98,7 @@ static partial class BatteryLevelHelper
 
             // The last battery level never fills the entire icon, adjust the width so it always fits.
             if (
-                index == batteryLevels.Count() - 1
+                index == batteryLevels.Count - 1
             )
             {
                 w2 = size - index * w;
@@ -102,9 +110,8 @@ static partial class BatteryLevelHelper
             );
         }
 
+        index++;
+
         return Icon.FromHandle(image.GetHicon());
     }
-
-    [GeneratedRegex("BATTERY_LEVEL=(\\d+)=END")]
-    private static partial Regex BatteryLevelRegex();
 }

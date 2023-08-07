@@ -1,63 +1,63 @@
-using System;
-using System.Linq;
 using System.Windows.Forms;
-using XboxWirelessControllerBatteryLevels;
 
-public class ApplicationForm : System.Windows.Forms.Form
+namespace XboxWirelessControllerBatteryLevels
 {
-    private System.Windows.Forms.NotifyIcon notifyIcon;
-    private System.ComponentModel.IContainer components;
-
-    public ApplicationForm()
+    public class ApplicationForm : Form
     {
-        components = new System.ComponentModel.Container();
+        private readonly NotifyIcon notifyIcon;
+        private readonly System.ComponentModel.IContainer components;
 
-        notifyIcon = new System.Windows.Forms.NotifyIcon(components);
-        UpdateStatus();
-        notifyIcon.Visible = true;
+        public ApplicationForm()
+        {
+            components = new System.ComponentModel.Container();
 
-        var contextMenu = new System.Windows.Forms.ContextMenuStrip(components);
-        contextMenu.Items.AddRange(new[] {
-            new System.Windows.Forms.ToolStripMenuItem(
+            notifyIcon = new NotifyIcon(components);
+            UpdateStatus();
+            notifyIcon.Visible = true;
+
+            var contextMenu = new ContextMenuStrip(components);
+            contextMenu.Items.AddRange(new[] {
+            new ToolStripMenuItem(
                 "Exit",
                 System.Drawing.SystemIcons.Exclamation.ToBitmap(),
                 (sender, e) => Application.Exit()
             )
         });
-        notifyIcon.ContextMenuStrip = contextMenu;
+            notifyIcon.ContextMenuStrip = contextMenu;
 
-        var timer = new System.Windows.Forms.Timer(components);
-        timer.Interval = 5000;
-        timer.Tick += (sender, e) => UpdateStatus();
-        timer.Start();
-    }
-
-    private void UpdateStatus()
-    {
-        // notifyIcon.Icon = System.Drawing.SystemIcons.Exclamation;
-        var batteryLevels = BatteryLevelHelper.GetBatteryLevels();
-        var icon = BatteryLevelHelper.GetIcon(batteryLevels);
-        notifyIcon.Icon = icon;
-        notifyIcon.Text = batteryLevels.Any()
-            ? batteryLevels.Select(x => $"{x}%").Aggregate((x, y) => $"{x}, {y}")
-            : "No controllers connected";
-    }
-
-    protected override void OnLoad(EventArgs e)
-    {
-        Visible = false;
-        ShowInTaskbar = false;
-
-        base.OnLoad(e);
-    }
-
-    protected override void Dispose(bool disposing)
-    {
-        if (disposing && components != null)
-        {
-            components.Dispose();
+            var timer = new Timer(components);
+            timer.Interval = 5000;
+            timer.Tick += (sender, e) => UpdateStatus();
+            timer.Start();
         }
 
-        base.Dispose(disposing);
+        private void UpdateStatus()
+        {
+            // notifyIcon.Icon = System.Drawing.SystemIcons.Exclamation;
+            var batteryLevels = BatteryLevelHelper.GetBatteryLevels();
+            var icon = BatteryLevelHelper.GetIcon(batteryLevels);
+            notifyIcon.Icon = icon;
+            notifyIcon.Text = batteryLevels.Count > 0
+                ? string.Join("%, ", batteryLevels) + "%"
+                : "No controllers connected";
+        }
+
+        protected override void OnLoad(System.EventArgs e)
+        {
+            Visible = false;
+            ShowInTaskbar = false;
+
+            base.OnLoad(e);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && components != null)
+            {
+                components.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }
