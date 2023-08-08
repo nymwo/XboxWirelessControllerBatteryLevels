@@ -29,4 +29,7 @@ System.Threading.dll
 System.Threading.Thread.dll
 System.Windows.Forms.dll
 System.Windows.Forms.Primitives.dll
+XboxWirelessControllerBatteryLevels.deps.json
 XboxWirelessControllerBatteryLevels.dll
+XboxWirelessControllerBatteryLevels.exe
+XboxWirelessControllerBatteryLevels.runtimeconfig.json

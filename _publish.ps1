@@ -8,12 +8,12 @@ if ($process) {
 }
 
 if (Test-Path ./publish) {
-    Remove-Item ./publish -Recurse -Force -ErrorAction Stop
+    Remove-Item ./publish/* -Recurse -Force -ErrorAction Stop
 }
 
 dotnet publish -c Release
 
-Copy-Item ./bin/Release/net*/win*/publish ./publish -Recurse -Force -ErrorAction Stop
+Copy-Item ./bin/Release/net*/win*/publish ./ -Recurse -Force -ErrorAction Stop
 
 # Remove unused files from Release folder for clarity
 

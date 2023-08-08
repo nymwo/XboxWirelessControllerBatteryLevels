@@ -12,6 +12,7 @@
     <InvariantGlobalization>true</InvariantGlobalization>
     <MetadataUpdaterSupport>false</MetadataUpdaterSupport>
     <ApplicationIcon>icon.ico</ApplicationIcon>
+    <ApplicationDpiMode>PerMonitorV2</ApplicationDpiMode>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)' == 'Release'">

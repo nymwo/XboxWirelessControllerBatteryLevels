@@ -17,12 +17,15 @@ namespace XboxWirelessControllerBatteryLevels
 
             var contextMenu = new ContextMenuStrip(components);
             contextMenu.Items.AddRange(new[] {
-            new ToolStripMenuItem(
-                "Exit",
-                System.Drawing.SystemIcons.Exclamation.ToBitmap(),
-                (sender, e) => Application.Exit()
-            )
-        });
+                new ToolStripMenuItem(
+                    ""
+                ),
+                new ToolStripMenuItem(
+                    "Exit",
+                    null,
+                    (sender, e) => Application.Exit()
+                )
+            });
             notifyIcon.ContextMenuStrip = contextMenu;
 
             var timer = new Timer(components)
@@ -37,11 +40,16 @@ namespace XboxWirelessControllerBatteryLevels
         {
             var batteryLevels = BatteryLevelHelper.GetBatteryLevels();
             var icon = BatteryLevelHelper.GetIcon(batteryLevels);
-            notifyIcon.Icon = icon;
-            notifyIcon.Text = batteryLevels.Count > 0
+            string text = batteryLevels.Count > 0
                 ? string.Join("%, ", batteryLevels) + "%"
                 : "No controllers connected";
-            System.GC.Collect();
+            notifyIcon.Icon = icon;
+            notifyIcon.Text = text;
+            if (notifyIcon.ContextMenuStrip?.Items.Count > 0)
+            {
+                notifyIcon.ContextMenuStrip.Items[0].Image = icon.ToBitmap();
+                notifyIcon.ContextMenuStrip.Items[0].Text = text;
+            }
         }
 
         protected override void OnLoad(System.EventArgs e)
@@ -50,6 +58,20 @@ namespace XboxWirelessControllerBatteryLevels
             ShowInTaskbar = false;
 
             base.OnLoad(e);
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (
+                m.Msg == 0x0011 || // WM_QUERYENDSESSION
+                m.Msg == 0x0016 // WM_ENDSESSION
+            )
+            {
+                Application.Exit();
+                return;
+            }
+
+            base.WndProc(ref m);
         }
 
         protected override void Dispose(bool disposing)

@@ -73,6 +73,10 @@ static partial class BatteryLevelHelper
 
         return results;
     }
+    internal static Icon GetIcon(int batteryLevel)
+    {
+        return GetIcon(new List<int> { batteryLevel });
+    }
     internal static Icon GetIcon(List<int> batteryLevels)
     {
         int size = 16;
