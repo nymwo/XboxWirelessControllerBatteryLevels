@@ -14,14 +14,3 @@ if (Test-Path ./publish) {
 dotnet publish -c Release
 
 Copy-Item ./bin/Release/net*/win*/publish ./ -Recurse -Force -ErrorAction Stop
-
-# Remove unused files from Release folder for clarity
-
-$used_files = Get-Content ./_used_files.txt -ErrorAction Stop
-$all_files = Get-ChildItem ./bin/Release/net*/win*/* -File -ErrorAction Stop | Select-Object -ExpandProperty Name
-
-foreach ($file in $all_files) {
-    if ($used_files -notcontains $file) {
-        Remove-Item ./bin/Release/net*/win*/$file -Force -ErrorAction Stop
-    }
-}
