@@ -15,7 +15,7 @@ static partial class BatteryLevelHelper
         $values = Get-CimInstance -Query 'Select * From Win32_PnPEntity Where Name = "Xbox Wireless Controller"' |`
             Invoke-CimMethod -MethodName GetDeviceProperties -Arguments @{devicePropertyKeys = '{104EA319-6EE2-4701-BD47-8DDBF425BBE5} 2', '{83DA6326-97A6-4088-9453-A1923F573B29} 15'} |`
             Select-Object -ExpandProperty DeviceProperties |`
-            Select-Object -ExpandProperty Data
+            ForEach-Object { if ($_.Data) { $_.Data } else { $false } }
 
         for ($i = 0; $i -lt $values.Count; $i += 2) {
             $batteryLevel = $values[$i]
@@ -27,6 +27,31 @@ static partial class BatteryLevelHelper
 
     """;
     internal static List<int> GetBatteryLevels()
+    {
+        var result = ExecuteScript(Script);
+
+        if (BatteryLevelRegex().Matches(result) is not MatchCollection matches)
+        {
+            return new List<int>();
+        }
+        
+        var results = new List<int>();
+        foreach (var m in matches)
+        {
+            if (m is not Match match)
+            {
+                continue;
+            }
+            var batteryLevel = int.Parse(match.Groups[1].Value);
+            results.Add(batteryLevel);
+        }
+
+        results.Sort();
+
+        return results;
+    }
+
+    internal static string ExecuteScript(string script)
     {
         using var process = new Process();
         process.StartInfo = new ProcessStartInfo
@@ -53,25 +78,7 @@ static partial class BatteryLevelHelper
 
         var result = process.StandardOutput.ReadToEnd();
 
-        if (BatteryLevelRegex().Matches(result) is not MatchCollection matches)
-        {
-            return new List<int>();
-        }
-        
-        var results = new List<int>();
-        foreach (var m in matches)
-        {
-            if (m is not Match match)
-            {
-                continue;
-            }
-            var batteryLevel = int.Parse(match.Groups[1].Value);
-            results.Add(batteryLevel);
-        }
-
-        results.Sort();
-
-        return results;
+        return result;
     }
     internal static Icon GetIcon(int batteryLevel)
     {

@@ -1,18 +1,19 @@
+using System;
 using System.Windows.Forms;
 
 namespace XboxWirelessControllerBatteryLevels
 {
     public class ApplicationForm : Form
     {
-        private readonly NotifyIcon notifyIcon;
         private readonly System.ComponentModel.IContainer components;
+        private readonly NotifyIcon notifyIcon;
 
         public ApplicationForm()
         {
             components = new System.ComponentModel.Container();
-
             notifyIcon = new NotifyIcon(components);
             UpdateStatus();
+
             notifyIcon.Visible = true;
 
             var contextMenu = new ContextMenuStrip(components);
